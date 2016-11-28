@@ -8,26 +8,48 @@
     android:layout_height="match_parent"
     tools:context="com.ramida.a3dlaserscaner.MainActivity">
 
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:orientation="horizontal"
+        tools:layout_editor_absoluteY="0dp"
+        tools:layout_editor_absoluteX="156dp"
+        android:weightSum="1"
+        android:id="@+id/linearLayout">
+
+
+        <LinearLayout
+            android:id="@+id/camera_preview"
+            android:orientation="vertical"
+            android:layout_weight="0.82"
+            android:layout_width="200dp"
+            android:layout_height="200dp" />
+
+    </LinearLayout>
+
+
     <Button
         android:text="Button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/button"
-        app:layout_constraintLeft_toLeftOf="@+id/activity_main"
+        app:layout_constraintLeft_toLeftOf="parent"
         tools:layout_constraintLeft_creator="1"
-        app:layout_constraintTop_toTopOf="@+id/activity_main"
-        android:layout_marginTop="16dp"
-        tools:layout_constraintTop_creator="1" />
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="272dp"
+        tools:layout_constraintTop_creator="1"
+        android:layout_marginStart="152dp" />
 
     <Button
         android:text="Button3"
         android:layout_width="218dp"
         android:layout_height="69dp"
         android:id="@+id/button2"
-        app:layout_constraintLeft_toLeftOf="@+id/activity_main"
+        app:layout_constraintLeft_toLeftOf="parent"
         tools:layout_constraintLeft_creator="1"
         app:layout_constraintTop_toBottomOf="@+id/button3"
-        android:layout_marginTop="35dp"
+        android:layout_marginTop="40dp"
         tools:layout_constraintTop_creator="1" />
 
     <Button
@@ -35,28 +57,58 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/button3"
-        app:layout_constraintLeft_toLeftOf="@+id/activity_main"
+        app:layout_constraintLeft_toLeftOf="parent"
         tools:layout_constraintLeft_creator="1"
-        app:layout_constraintTop_toTopOf="@+id/activity_main"
-        android:layout_marginTop="205dp"
-        tools:layout_constraintTop_creator="1" />
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="280dp"
+        tools:layout_constraintTop_creator="1"
+        android:layout_marginStart="16dp" />
 
     <TextView
         android:text="TextView"
-        android:layout_width="0dp"
-        android:layout_height="80dp"
+        android:layout_width="277dp"
+        android:layout_height="55dp"
         android:id="@+id/textView"
-        app:layout_constraintLeft_toLeftOf="@+id/activity_main"
+        app:layout_constraintLeft_toLeftOf="parent"
         android:layout_marginStart="16dp"
-        tools:layout_constraintLeft_creator="1"
-        app:layout_constraintTop_toTopOf="@+id/button"
-        android:layout_marginTop="82dp"
-        tools:layout_constraintTop_creator="1"
-        app:layout_constraintRight_toRightOf="@+id/activity_main"
-        android:layout_marginEnd="16dp"
-        tools:layout_constraintRight_creator="1"
-        app:layout_constraintBottom_toBottomOf="@+id/button3"
-        android:layout_marginBottom="75dp"
-        tools:layout_constraintBottom_creator="1" />
+        app:layout_constraintTop_toBottomOf="@+id/button2" />
+
+    <Button
+        android:id="@+id/button_ChangeCamera"
+        android:layout_width="88dp"
+        android:layout_height="wrap_content"
+        android:text="Switch Camera"
+        tools:layout_editor_absoluteY="267dp"
+        tools:layout_editor_absoluteX="272dp" />
+
+    <Button
+        android:id="@+id/button_capture"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Capture"
+        tools:layout_editor_absoluteY="376dp"
+        tools:layout_editor_absoluteX="248dp" />
+
+    <LinearLayout
+        android:id="@+id/buttonsLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="240dp"
+        android:layout_gravity="center"
+        android:orientation="vertical"
+        android:layout_weight="2.01"
+        tools:layout_editor_absoluteY="8dp"
+        tools:layout_editor_absoluteX="0dp"
+        android:weightSum="1">
+
+
+
+        <ImageView
+            android:id="@+id/imgView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            />
+
+
+    </LinearLayout>
 
 </android.support.constraint.ConstraintLayout>
