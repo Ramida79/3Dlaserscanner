@@ -47,6 +47,7 @@ import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
 import android.hardware.Camera.PictureCallback;
 
+import static java.lang.Thread.sleep;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -141,8 +142,7 @@ public class MainActivity extends AppCompatActivity {
                     connect = new ConnectThread(device);
                     connect.start();
                 } else {
-                    Toast.makeText(getApplicationContext(), "device is not paired", 0)
-                            .show();
+                    Toast.makeText(getApplicationContext(), "device is not paired",Toast.LENGTH_LONG).show();
                 }
 
 
@@ -161,10 +161,14 @@ public class MainActivity extends AppCompatActivity {
         button1.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 
-                String message= "1";
+                String message= "haslo\n";
 
                 byte[] msgBuffer = message.getBytes();
                 connectedThread.write(msgBuffer);
+
+
+
+
 
                 //tu cos bedzie
             }
@@ -173,7 +177,7 @@ public class MainActivity extends AppCompatActivity {
 
         button2.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                String message = "2";
+                String message = "50\n";
 
                 byte[] msgBuffer = message.getBytes();
                 connectedThread.write(msgBuffer);
@@ -310,7 +314,7 @@ public class MainActivity extends AppCompatActivity {
 
 
                 // The height of the image
-                for ( iY = 0; iY < bitmapClone.getHeight(); iY++ )
+/*                for ( iY = 0; iY < bitmapClone.getHeight(); iY++ )
                 {
                     // The width of the image
                     for ( iX = 0; iX < bitmapClone.getWidth(); iX++ )
@@ -329,7 +333,7 @@ public class MainActivity extends AppCompatActivity {
                         bitmapClone.setPixel(iX, iY, Color.rgb(iRGBAvg, iRGBAvg, iRGBAvg));
                     }
                 }
-
+*/
                 ImgView.setImageBitmap(bitmapClone);
 
 
