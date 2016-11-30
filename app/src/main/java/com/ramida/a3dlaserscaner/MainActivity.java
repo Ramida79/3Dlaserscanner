@@ -75,6 +75,7 @@ public class MainActivity extends AppCompatActivity {
     ArrayList<String> pairedDevices;
     HashSet<BluetoothDevice> devices;
     BluetoothAdapter btAdapter;
+    ThreeDDColector skaner;
 
     Button button;
     Button button1;
@@ -165,22 +166,21 @@ public class MainActivity extends AppCompatActivity {
 
                 byte[] msgBuffer = message.getBytes();
                 connectedThread.write(msgBuffer);
-
-
-
-
-
                 //tu cos bedzie
+
             }
         });
 
 
         button2.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                String message = "50\n";
+              /*  String message = "50\n";
 
                 byte[] msgBuffer = message.getBytes();
-                connectedThread.write(msgBuffer);
+                connectedThread.write(msgBuffer);*/
+
+                skaner = new ThreeDDColector((float)1.0 , (float)360.0);
+                skaner.start();
             }
         });
 
@@ -593,9 +593,13 @@ public class MainActivity extends AppCompatActivity {
 
 
                         Log.i(tag, "mam wiadomosci: " + buffer.length + "_"+
-                                new String(buffer, "US-ASCII")+ "zapisano do tablicy  ");
+                                new String(buffer, "US-ASCII"));
                         // Send the obtained bytes to the UI activity
 
+                        if(     new String(buffer, "US-ASCII") == "gotowe")
+                        {
+                                skaner.setRotationReady();
+                        }
 
                         Thread.sleep(100);
 
@@ -637,6 +641,69 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+    private class ThreeDDColector extends Thread {
+        boolean RunThread;
+        float stepAngle, AngleMax;
+        boolean canTakephoto;
+
+
+        public ThreeDDColector (float step,float angle) {
+            stepAngle=step;
+            RunThread=true;
+            AngleMax=angle;
+            canTakephoto=true;
+
+        }
+
+        public void setRotationReady()
+        {
+            canTakephoto=true;
+
+        }
+
+       private  void RotateTable(float Angle)
+        {
+            String message = Angle +  "\n";
+
+            byte[] msgBuffer = message.getBytes();
+
+
+        }
+
+
+         public void run() {
+
+
+             for (float a=0;a<=AngleMax;a+=stepAngle)
+             {
+
+                 if(canTakephoto)
+                 {
+
+                     mCamera.takePicture(null, null, mPicture);
+
+                     canTakephoto=false;
+                 }
+
+                 RotateTable(stepAngle);
+
+
+             }
+
+
+
+        }
+
+        /* Call this from the main activity to shutdown the connection */
+        public void cancel() {
+            RunThread = false;
+        }
+
+    }
+
 
 }
+
+
+
 
