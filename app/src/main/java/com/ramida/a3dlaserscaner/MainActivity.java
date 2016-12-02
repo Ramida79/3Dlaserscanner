@@ -55,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
     private Camera mCamera;
     private CameraPreview mPreview;
     private PictureCallback mPicture;
-    private Button capture, switchCamera;
+    private Button capture;//, switchCamera;
     private Context myContext;
     private LinearLayout cameraPreview;
     private ImageView ImgView;
@@ -78,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
     ThreeDDColector skaner;
 
     Button button;
-    Button button1;
+    Button button1ROTACJA;
     Button button2;
     TextView hTextView;
     private int nCounter=0;
@@ -124,12 +124,13 @@ public class MainActivity extends AppCompatActivity {
 
 
         button = (Button) findViewById(R.id.button);
-        button1 = (Button) findViewById(R.id.button2);
+        button1ROTACJA = (Button) findViewById(R.id.Brot);
         button2 = (Button) findViewById(R.id.button3);
 
         button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 
+                hTextView.setText("Connecting...\n");
 
                 btAdapter = BluetoothAdapter.getDefaultAdapter();
 
@@ -159,11 +160,12 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-        button1.setOnClickListener(new View.OnClickListener() {
+        button1ROTACJA.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 
                 String message= "haslo\n";
 
+                hTextView.setText("Send pass\n");
                 byte[] msgBuffer = message.getBytes();
                 connectedThread.write(msgBuffer);
                 //tu cos bedzie
@@ -174,12 +176,14 @@ public class MainActivity extends AppCompatActivity {
 
         button2.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-              /*  String message = "50\n";
+  /*              String message = "50\n";
 
                 byte[] msgBuffer = message.getBytes();
-                connectedThread.write(msgBuffer);*/
+                connectedThread.write(msgBuffer);
+*/
 
-                skaner = new ThreeDDColector((float)1.0 , (float)360.0);
+                hTextView.setText("Start pomiarow\n");
+                skaner = new ThreeDDColector((float)100.0 , (float)360.0);
                 skaner.start();
             }
         });
@@ -216,7 +220,7 @@ public class MainActivity extends AppCompatActivity {
             //if the front facing camera does not exist
             if (findFrontFacingCamera() < 0) {
                 Toast.makeText(this, "No front facing camera found.", Toast.LENGTH_LONG).show();
-                switchCamera.setVisibility(View.GONE);
+               // switchCamera.setVisibility(View.GONE);
             }
             mCamera = Camera.open(findBackFacingCamera());
             mPicture = getPictureCallback();
@@ -436,8 +440,8 @@ public class MainActivity extends AppCompatActivity {
         capture = (Button) findViewById(R.id.button_capture);
         capture.setOnClickListener(captrureListener);
 
-        switchCamera = (Button) findViewById(R.id.button_ChangeCamera);
-        switchCamera.setOnClickListener(switchCameraListener);
+        //switchCamera = (Button) findViewById(R.id.button_ChangeCamera);
+        //switchCamera.setOnClickListener(switchCameraListener);
     }
 
 
@@ -482,7 +486,12 @@ public class MainActivity extends AppCompatActivity {
                 break;
                 case MESSAGE_READ: {
                     byte[] readBuf = (byte[]) msg.obj;
-                    Log.i(tag, "Otrzymano wiadomosci do zapisu do pliku");
+
+
+
+                    Log.i(tag, "NOWEwiadomosci: " + readBuf.length + "____ "+ readBuf.toString());//new String(readBuf.to, "US-ASCII"));
+
+
 
                 }
                 break;
@@ -592,12 +601,19 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-                        Log.i(tag, "mam wiadomosci: " + buffer.length + "_"+
-                                new String(buffer, "US-ASCII"));
+                        Log.i(tag, "mam wiadomosci: " + buffer.length + "____ "+ new String(buffer, "US-ASCII"));
                         // Send the obtained bytes to the UI activity
 
-                        if(     new String(buffer, "US-ASCII") == "gotowe")
+
+                      /*  Toast toast = Toast.makeText(myContext, " otzymano dane " +  new String(buffer, "US-ASCII"), Toast.LENGTH_LONG);
+                        toast.show();
+*/
+
+
+
+                        if(     new String(buffer, "US-ASCII") == "R")
                         {
+                            hTextView.setText(new String(buffer, "US-ASCII"));
                                 skaner.setRotationReady();
                         }
 
@@ -663,9 +679,11 @@ public class MainActivity extends AppCompatActivity {
 
        private  void RotateTable(float Angle)
         {
-            String message = Angle +  "\n";
+            String message =  Integer.toString((int)Angle)+'\n';
 
             byte[] msgBuffer = message.getBytes();
+
+            connectedThread.write(msgBuffer);
 
 
         }
@@ -673,23 +691,36 @@ public class MainActivity extends AppCompatActivity {
 
          public void run() {
 
+             try {
 
-             for (float a=0;a<=AngleMax;a+=stepAngle)
-             {
 
-                 if(canTakephoto)
+                /* String message = "haslo\n";
+
+                 byte[] msgBuffer = message.getBytes();
+
+                 connectedThread.write(msgBuffer);
+*/
+
+
+                 for (float a=0;a<=AngleMax;a+=stepAngle)
                  {
 
-                     mCamera.takePicture(null, null, mPicture);
+                     if(canTakephoto)
+                     {
 
-                     canTakephoto=false;
+                        // mCamera.takePicture(null, null, mPicture);
+
+                         canTakephoto=false;
+                     }
+
+                     RotateTable(stepAngle);
+                     Thread.sleep(2000);
+
                  }
 
-                 RotateTable(stepAngle);
-
-
+             } catch (InterruptedException e) {
+                 e.printStackTrace();
              }
-
 
 
         }
