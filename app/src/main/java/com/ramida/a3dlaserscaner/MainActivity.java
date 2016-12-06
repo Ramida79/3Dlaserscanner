@@ -183,7 +183,7 @@ public class MainActivity extends AppCompatActivity {
 */
 
                 hTextView.setText("Start pomiarow\n");
-                skaner = new ThreeDDColector((float)100.0 , (float)360.0);
+                skaner = new ThreeDDColector((float)50 , (float)360.0);
                 skaner.start();
             }
         });
@@ -297,12 +297,10 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+            ///moje
 
 
-                ///moje
-
-
-                Bitmap mBitmap = BitmapFactory.decodeByteArray(data, 0 , data.length);
+/*                Bitmap mBitmap = BitmapFactory.decodeByteArray(data, 0 , data.length);
                 bitmapClone = Bitmap.createBitmap(mBitmap.getWidth(), mBitmap.getHeight(),
                         mBitmap.getConfig());
                 bitmapClone.copy(mBitmap.getConfig(), true);
@@ -396,6 +394,7 @@ public class MainActivity extends AppCompatActivity {
     OnClickListener captrureListener = new OnClickListener() {
         @Override
         public void onClick(View v) {
+
             mCamera.takePicture(null, null, mPicture);
 
         }
@@ -661,6 +660,7 @@ public class MainActivity extends AppCompatActivity {
         boolean RunThread;
         float stepAngle, AngleMax;
         boolean canTakephoto;
+        int nr_of_pic=0;
 
 
         public ThreeDDColector (float step,float angle) {
@@ -707,14 +707,17 @@ public class MainActivity extends AppCompatActivity {
 
                      if(canTakephoto)
                      {
-
-                        // mCamera.takePicture(null, null, mPicture);
+                         nr_of_pic++;
+                        mCamera.takePicture(null, null, mPicture);
 
                          canTakephoto=false;
                      }
 
                      RotateTable(stepAngle);
+
                      Thread.sleep(2000);
+                     setRotationReady();
+
 
                  }
 
