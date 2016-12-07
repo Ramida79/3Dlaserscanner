@@ -488,9 +488,9 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-                    Log.i(tag, "NOWEwiadomosci: " + readBuf.length + "____ "+ readBuf.toString());//new String(readBuf.to, "US-ASCII"));
+                   // Log.i(tag, "NOWEwiadomosci: " + readBuf.length + "____ "+ readBuf.toString());//new String(readBuf.to, "US-ASCII"));
 
-
+                    hTextView.setText(readBuf.toString());
 
                 }
                 break;
@@ -584,7 +584,6 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-
         public void run() {
             byte[] buffer; // buffer store for the stream
 
@@ -608,6 +607,9 @@ public class MainActivity extends AppCompatActivity {
                         toast.show();
 */
 
+                        mHandler.obtainMessage(MESSAGE_READ,
+                                buffer.length, -1,
+                                buffer).sendToTarget();
 
 
                         if(     new String(buffer, "US-ASCII") == "R")
