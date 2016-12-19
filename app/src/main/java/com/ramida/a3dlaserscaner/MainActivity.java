@@ -89,7 +89,7 @@ public class MainActivity extends AppCompatActivity {
     // Insert your bluetooth devices MAC address
     private static String address ="98:D3:32:30:39:99";// "98:D3:33:80:70:01";
 
-
+   // private static String address ="24:DF:6A:0C:2D:7F";
 
     protected static final int SUCCESS_CONNECT = 0;
     protected static final int MESSAGE_READ = 1;
@@ -300,11 +300,16 @@ public class MainActivity extends AppCompatActivity {
             ///moje
 
 
-/*                Bitmap mBitmap = BitmapFactory.decodeByteArray(data, 0 , data.length);
-                bitmapClone = Bitmap.createBitmap(mBitmap.getWidth(), mBitmap.getHeight(),
+            /*   Bitmap mBitmap = BitmapFactory.decodeByteArray(data, 0 , data.length);
+               bitmapClone = Bitmap.createBitmap(mBitmap.getWidth(), mBitmap.getHeight(),
                         mBitmap.getConfig());
                 bitmapClone.copy(mBitmap.getConfig(), true);
 
+
+                ImgView.setImageBitmap(bitmapClone);
+              ImgView.invalidate();
+*/
+                /*
                 int iY = 0;
                 int iX = 0;
                 int iPixel = 0;
@@ -336,7 +341,10 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
 */
-                ImgView.setImageBitmap(bitmapClone);
+
+
+
+
 
 
                 ///moje koniec
@@ -397,6 +405,9 @@ public class MainActivity extends AppCompatActivity {
 
             mCamera.takePicture(null, null, mPicture);
 
+            //ImgView.setImageBitmap();
+            //ImgView.invalidate();
+
         }
     };
 
@@ -434,6 +445,7 @@ public class MainActivity extends AppCompatActivity {
         mPreview = new CameraPreview(myContext, mCamera);
         cameraPreview.addView(mPreview);
         ImgView = (ImageView)this.findViewById(R.id.imgView);
+
 
 
         capture = (Button) findViewById(R.id.button_capture);
