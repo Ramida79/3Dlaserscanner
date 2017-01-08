@@ -1,18 +1,17 @@
 package com.ramida.a3dlaserscaner;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-//import android.graphics.Camera;
-import android.graphics.Color;
+import android.os.AsyncTask;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
+import android.os.SystemClock;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -20,6 +19,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -40,14 +40,10 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
 import android.hardware.Camera.PictureCallback;
 
-import static java.lang.Thread.sleep;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -63,12 +59,6 @@ public class MainActivity extends AppCompatActivity {
     private Bitmap bitmapClone;
 
 
-  /*  @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-    }
-*/
 
 
     Set<BluetoothDevice> devicesArray;
@@ -81,9 +71,13 @@ public class MainActivity extends AppCompatActivity {
     Button button1ROTACJA;
     Button button2;
     TextView hTextView;
+    TextView hTextInfo;
+    EditText etStep;
+    EditText etAngle;
+
     private int nCounter=0;
 
-
+    public String TextBoxDataFromThread = "Dupa !!";
 
 
     // Insert your bluetooth devices MAC address
@@ -93,6 +87,9 @@ public class MainActivity extends AppCompatActivity {
 
     protected static final int SUCCESS_CONNECT = 0;
     protected static final int MESSAGE_READ = 1;
+    protected static final int MESSAGE_TO_TEXT_BOX = 2;
+    protected static final int MESSAGE_TAKE_PHOTO = 3;
+    protected static final int  MESSAGE_CLOSE_BT =4;
 
     String tag = "debugging";
     public final UUID MY_UUID = UUID
@@ -104,7 +101,11 @@ public class MainActivity extends AppCompatActivity {
     ConnectedThread connectedThread;
 
 
-    private Handler mHandl= new Handler();
+    UpdateTextInfoAsyncTask mUpdateTextInfoAsyncTask = null;
+
+    //private Handler mHandl= new Handler();
+
+
 
 
 
@@ -120,12 +121,16 @@ public class MainActivity extends AppCompatActivity {
 
 
         hTextView = (TextView) findViewById(R.id.textView);
-
+        hTextInfo= (TextView) findViewById(R.id.tInfoBox);
 
 
         button = (Button) findViewById(R.id.button);
         button1ROTACJA = (Button) findViewById(R.id.Brot);
         button2 = (Button) findViewById(R.id.button3);
+        etAngle= (EditText) findViewById(R.id.tAngle);
+        etStep = (EditText) findViewById(R.id.tStep);
+
+
 
         button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -150,11 +155,11 @@ public class MainActivity extends AppCompatActivity {
 
                 // zadanie uaktualniania textView
 
-                try {
+              /*  try {
                     mHandl.postDelayed(hMyTimeTask, 1000);
                 } catch (Exception e) {
 
-                }
+                }*/
             }
         });
 
@@ -163,11 +168,11 @@ public class MainActivity extends AppCompatActivity {
         button1ROTACJA.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 
-                String message= "haslo\n";
 
-                hTextView.setText("Send pass\n");
-                byte[] msgBuffer = message.getBytes();
-                connectedThread.write(msgBuffer);
+
+                connectedThread.resetConection();
+                finish();
+                System.exit(0);
                 //tu cos bedzie
 
             }
@@ -182,12 +187,111 @@ public class MainActivity extends AppCompatActivity {
                 connectedThread.write(msgBuffer);
 */
 
+                String message= "haslo\n";
+
+               // hTextView.setText("Send pass\n");
+                byte[] msgBuffer = message.getBytes();
+                connectedThread.write(msgBuffer);
+
+
+
+
                 hTextView.setText("Start pomiarow\n");
-                skaner = new ThreeDDColector((float)50 , (float)360.0);
+
+
+                skaner = new ThreeDDColector(Float.valueOf(etStep.getText().toString()) , Float.valueOf(etAngle.getText().toString()));
                 skaner.start();
+
+
+
+                if (mUpdateTextInfoAsyncTask == null )
+                {
+                    mUpdateTextInfoAsyncTask = new UpdateTextInfoAsyncTask();
+                    mUpdateTextInfoAsyncTask.execute();
+                }
+
+
             }
         });
 
+
+
+    }
+
+// myContext.getMainLooper()
+
+    @SuppressLint("HandlerLeak")
+    Handler mHandler = new Handler( Looper.getMainLooper()) {
+        @Override
+        public void handleMessage(Message msg) {
+            // TODO Auto-generated method stub
+            Log.i(tag, "in handler");
+            super.handleMessage(msg);
+
+
+            switch (msg.what) {
+                case SUCCESS_CONNECT: {
+
+                    connectedThread = new ConnectedThread((BluetoothSocket) msg.obj);
+                    connectedThread.start();
+
+
+                    Log.i(tag, "jestem polaczony- connected");
+                }
+                break;
+                case MESSAGE_READ: {
+                    byte[] readBuf = (byte[]) msg.obj;
+
+
+
+                    Log.i(tag, "NOWEwiadomosci: " + readBuf.length + "____ "+ readBuf.toString());//new String(readBuf.to, "US-ASCII"));
+
+
+
+                }
+                break;
+                case MESSAGE_TO_TEXT_BOX:
+                {
+                  //  hTextInfo.setText((String)msg.obj);
+                }
+                break;
+
+                case MESSAGE_TAKE_PHOTO:
+                      //  mCamera.takePicture(null, null, mPicture);
+                    break;
+
+                case   MESSAGE_CLOSE_BT:
+                        connectedThread.resetConection();
+                    break;
+            }
+        }
+    };
+
+
+    public void takePhoto() {
+
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                // This gets executed on the UI thread so it can safely modify Views
+                mCamera.takePicture(null, null, mPicture);
+                skaner.setRotationReady();
+            }
+        });
+
+    }
+
+
+
+    public void receiveMyMessage() {
+
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                // This gets executed on the UI thread so it can safely modify Views
+                hTextInfo.setText(TextBoxDataFromThread);
+            }
+        });
 
     }
 
@@ -226,51 +330,18 @@ public class MainActivity extends AppCompatActivity {
             mPicture = getPictureCallback();
             mPreview.refreshCamera(mCamera);
         }
+
+
+        if (mUpdateTextInfoAsyncTask == null )
+            {
+                mUpdateTextInfoAsyncTask = new UpdateTextInfoAsyncTask();
+                mUpdateTextInfoAsyncTask.execute();
+            }
+
+
     }
-    View.OnClickListener switchCameraListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            //get the number of cameras
-            int camerasNumber = Camera.getNumberOfCameras();
-            if (camerasNumber > 1) {
-                //release the old camera instance
-                //switch camera, from the front and the back and vice versa
 
-                releaseCamera();
-                chooseCamera();
-            } else {
-                Toast toast = Toast.makeText(myContext, "Sorry, your phone has only one camera!", Toast.LENGTH_LONG);
-                toast.show();
-            }
-        }
-    };
 
-    public void chooseCamera() {
-        //if the camera preview is the front
-        if (cameraFront) {
-            int cameraId = findBackFacingCamera();
-            if (cameraId >= 0) {
-                //open the backFacingCamera
-                //set a picture callback
-                //refresh the preview
-
-                mCamera = Camera.open(cameraId);
-                mPicture = getPictureCallback();
-                mPreview.refreshCamera(mCamera);
-            }
-        } else {
-            int cameraId = findFrontFacingCamera();
-            if (cameraId >= 0) {
-                //open the backFacingCamera
-                //set a picture callback
-                //refresh the preview
-
-                mCamera = Camera.open(cameraId);
-                mPicture = getPictureCallback();
-                mPreview.refreshCamera(mCamera);
-            }
-        }
-    }
     @Override
     protected void onPause() {
         super.onPause();
@@ -341,16 +412,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
 */
-
-
-
-
-
-
                 ///moje koniec
-
-
-
 
                 //make a new picture file
                 File pictureFile = getOutputMediaFile();
@@ -399,11 +461,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+
+
+
     OnClickListener captrureListener = new OnClickListener() {
         @Override
         public void onClick(View v) {
 
-            mCamera.takePicture(null, null, mPicture);
+
+                         mCamera.takePicture(null, null, mPicture);
+
+
+
 
             //ImgView.setImageBitmap();
             //ImgView.invalidate();
@@ -456,59 +525,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+
+/*
     private Runnable hMyTimeTask = new Runnable() {
         @Override
         public void run() {
             nCounter++;
             hTextView.setText("Nowy tekst "+ nCounter);
         }
-    };
-
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-     /*   if (id == R.id.action_settings) {
-            return true;
-        }*/
-        return super.onOptionsItemSelected(item);
-    }
-
-
-
-
-    @SuppressLint("HandlerLeak")
-    Handler mHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            // TODO Auto-generated method stub
-            Log.i(tag, "in handler");
-            super.handleMessage(msg);
-            switch (msg.what) {
-                case SUCCESS_CONNECT: {
-
-                    connectedThread = new ConnectedThread((BluetoothSocket) msg.obj);
-                    connectedThread.start();
-                    Log.i(tag, "jestem polaczony- connected");
-                }
-                break;
-                case MESSAGE_READ: {
-                    byte[] readBuf = (byte[]) msg.obj;
-
-
-
-                    Log.i(tag, "NOWEwiadomosci: " + readBuf.length + "____ "+ readBuf.toString());//new String(readBuf.to, "US-ASCII"));
-
-
-
-                }
-                break;
-            }
-        }
-    };
+    };*/
 
 
 
@@ -538,6 +563,7 @@ public class MainActivity extends AppCompatActivity {
             }
             mmSocket = tmp;
         }
+
 
         public void run() {
             // Cancel discovery because it will slow down the connection
@@ -594,7 +620,28 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        public void resetConection()
+        {
 
+            if (mmInStream != null) {
+                try {mmInStream.close();} catch (Exception e) {}
+               // mmInStream = null;
+            }
+
+            if (mmOutStream != null) {
+                try {mmOutStream.close();
+                    //mmOutStream = null;
+                } catch (Exception e) {}
+
+            }
+
+            if (mmSocket != null) {
+                try {mmSocket.close();} catch (Exception e) {}
+               // mmSocket = null;
+            }
+                RunThread=false;
+
+        }
 
 
         public void run() {
@@ -624,14 +671,14 @@ public class MainActivity extends AppCompatActivity {
 
                         if(     new String(buffer, "US-ASCII") == "R")
                         {
-                            hTextView.setText(new String(buffer, "US-ASCII"));
+                            //hTextView.setText(new String(buffer, "US-ASCII"));
                                 skaner.setRotationReady();
                         }
 
                         Thread.sleep(100);
 
                     }
-                }
+               }
 
 
                 catch (InterruptedException e) {
@@ -661,7 +708,6 @@ public class MainActivity extends AppCompatActivity {
             RunThread = false;
         }
     }
-
 
 
 
@@ -701,6 +747,20 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
+        private  synchronized void UpdateTBox(float Angle)
+        {
+            TextBoxDataFromThread = "Aktualny kat " + Angle+"\nWykonano "+ ((Angle/AngleMax)*100.0)+" %"+"\nWykonano " +nr_of_pic+"zdjęć";
+
+            if(Angle == (float)-1.0)
+                TextBoxDataFromThread= "Wykonano "+nr_of_pic+"zdjęć\nKoniec pomiarow!!!";
+
+
+          //  mHandler.obtainMessage(MESSAGE_TO_TEXT_BOX, msg2).sendToTarget();
+
+
+        }
+
+
          public void run() {
 
              try {
@@ -717,23 +777,43 @@ public class MainActivity extends AppCompatActivity {
                  for (float a=0;a<=AngleMax;a+=stepAngle)
                  {
 
+                     while(!canTakephoto)
+                     {}
+
+
                      if(canTakephoto)
                      {
                          nr_of_pic++;
-                        mCamera.takePicture(null, null, mPicture);
+                        //  mCamera.takePicture(null, null, mPicture);
+
+
+                            takePhoto();
+                         canTakephoto=false;
+
+                        // mHandler.obtainMessage(MESSAGE_TAKE_PHOTO, "brak").sendToTarget();
+
+                         Log.i("Obroty", "zdjecie zrobione wewnatrz ifa ");
 
                          canTakephoto=false;
+
+
+                         UpdateTBox(a);
                      }
 
+                   //  Log.i("Obroty", "zdjecie zrobione ");
                      RotateTable(stepAngle);
-
-                     Thread.sleep(2000);
-                     setRotationReady();
-
+                 //    Log.i("Obroty", "stol obrucony");
+                 //    Thread.
+                     sleep(2000);
+                 //    Log.i("Obroty", "koniec przerwy");
+                     //setRotationReady();
+                  //   Log.i("Obroty", "mozesz robic nastepna fotke");
 
                  }
+                 UpdateTBox((float)-1.0);
 
-             } catch (InterruptedException e) {
+
+            } catch (InterruptedException e) {
                  e.printStackTrace();
              }
 
@@ -748,8 +828,87 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-}
+    /****
+     * Watek asynchroniczny do aktualizacji text boxow
+     */
 
+
+
+    public class UpdateTextInfoAsyncTask extends AsyncTask<Void, Integer, Void> {
+
+        int myProgress;
+        boolean running;
+
+
+        @Override
+        protected void onPreExecute() {
+            // TODO Auto-generated method stub
+            super.onPreExecute();
+            myProgress = 0;
+            running = false;
+
+        }
+
+        @Override
+        protected void onPostExecute(Void result) {
+            // TODO Auto-generated method stub
+            super.onPostExecute(result);
+
+
+        }
+
+        @Override
+        protected void onCancelled() {
+            // TODO Auto-generated method stub
+
+            running = false;
+            //	mUpdateTextInfoAsyncTask = null;
+        }
+
+
+        @Override
+        protected Void doInBackground(Void... arg0) {
+            // TODO Auto-generated method stub
+            //while (myProgress < 100)
+            running = true;
+
+           /* while (AutoUpdate.isChecked())
+            {
+                //RefreshListOfChanels();
+
+                myProgress++;
+                publishProgress(myProgress);
+                SystemClock.sleep(500);
+            }*/
+            while (running) {
+                publishProgress(myProgress);
+                SystemClock.sleep(500);
+            }
+            return null;
+        }
+
+
+        @Override
+        protected void onProgressUpdate(Integer... values) {
+            // TODO Auto-generated method stub
+            //cProgress.setProgress(values[0]);
+            //mainactivity context = (mainactivity) getActivity();
+            //context.setListOfFiesToTransferSSHServer("nazwa");
+
+            if (myContext != null) {
+
+                receiveMyMessage();
+               // hTextInfo.setText(TextBoxDataFromThread);
+
+                //ut dodam wyswietlanie aktualnego stringa z maina :)
+
+
+            }
+
+        }
+
+    }
+}
 
 
 
