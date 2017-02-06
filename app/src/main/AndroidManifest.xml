@@ -26,6 +26,17 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:label="Analyze"
+            android:name=".Measurment" >
+        </activity>
+
+        <activity
+            android:label="STL"
+            android:name=".STLViewActivity" >
+        </activity>
+
     </application>
 
 </manifest>

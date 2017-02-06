@@ -1,10 +1,13 @@
 package com.ramida.a3dlaserscaner;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
@@ -22,6 +25,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+
 import android.widget.TextView;
 import android.widget.Toast;
 import android.view.View.OnClickListener;
@@ -36,6 +40,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -44,9 +49,10 @@ import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
 import android.hardware.Camera.PictureCallback;
 
+import static android.R.attr.value;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends Activity {
 
     private Camera mCamera;
     private CameraPreview mPreview;
@@ -57,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
     private ImageView ImgView;
     private boolean cameraFront = false;
     private Bitmap bitmapClone;
-
+    private ProgressDialog progressDialog;
 
 
 
@@ -78,7 +84,8 @@ public class MainActivity extends AppCompatActivity {
     private int nCounter=0;
 
     public String TextBoxDataFromThread = "Dupa !!";
-
+    public static String folderDate="brak";
+    public  static String picName = "brak2";
 
     // Insert your bluetooth devices MAC address
     private static String address ="98:D3:32:30:39:99";// "98:D3:33:80:70:01";
@@ -90,6 +97,8 @@ public class MainActivity extends AppCompatActivity {
     protected static final int MESSAGE_TO_TEXT_BOX = 2;
     protected static final int MESSAGE_TAKE_PHOTO = 3;
     protected static final int  MESSAGE_CLOSE_BT =4;
+
+
 
     String tag = "debugging";
     public final UUID MY_UUID = UUID
@@ -129,6 +138,8 @@ public class MainActivity extends AppCompatActivity {
         button2 = (Button) findViewById(R.id.button3);
         etAngle= (EditText) findViewById(R.id.tAngle);
         etStep = (EditText) findViewById(R.id.tStep);
+
+
 
 
 
@@ -198,6 +209,7 @@ public class MainActivity extends AppCompatActivity {
 
                 hTextView.setText("Start pomiarow\n");
 
+                folderDate =  new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
 
                 skaner = new ThreeDDColector(Float.valueOf(etStep.getText().toString()) , Float.valueOf(etAngle.getText().toString()));
                 skaner.start();
@@ -275,7 +287,7 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
                 // This gets executed on the UI thread so it can safely modify Views
                 mCamera.takePicture(null, null, mPicture);
-                skaner.setRotationReady();
+                skaner.setPhotoReady();
             }
         });
 
@@ -358,11 +370,77 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
+    public static byte[][] cloneArray(byte[][] src) {
+        int length = src.length;
+        byte[][] target = new byte[length][src[0].length];
+        for (int i = 0; i < length; i++) {
+            System.arraycopy(src[i], 0, target[i], 0, src[i].length);
+        }
+        return target;
+    }
+
+
+    private  class SaveImageTask extends AsyncTask<byte[], Void, Void> {
+
+        //ArrayList<byte[]> daneDD;
+
+
+
+        @Override
+        protected Void doInBackground(byte[]... data) {
+            FileOutputStream outStream = null;
+
+
+
+            // Write to SD Card
+            try {
+
+                File outFile= getOutputMediaFile();
+
+
+
+                outStream = new FileOutputStream(outFile);
+                outStream.write(data[0]);
+                outStream.flush();
+                outStream.close();
+
+               // Log.d(TAG, "onPictureTaken - wrote bytes: " + data.length + " to " + outFile.getAbsolutePath());
+
+                //refreshGallery(outFile);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+            }
+            return null;
+        }
+
+    }
+
+    PictureCallback jpegCallback = new PictureCallback() {
+        public void onPictureTaken(byte[] data, Camera camera) {
+            //new SaveImageTask().execute(data);
+            new SaveImageTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,data);
+            resetCam();
+          //  Log.d(TAG, "onPictureTaken - jpeg");
+        }
+    };
+
+
+    private void resetCam() {
+        mCamera.startPreview();
+        mPreview.setCamera(mCamera);
+    }
+
+
+
     private PictureCallback getPictureCallback() {
         PictureCallback picture = new PictureCallback() {
 
             @Override
-            public void onPictureTaken(byte[] data, Camera camera) {
+            public synchronized void onPictureTaken(byte[] data, Camera camera) {
 
                 long startTime = System.currentTimeMillis();
 
@@ -428,8 +506,8 @@ public class MainActivity extends AppCompatActivity {
 
                     long difference = System.currentTimeMillis() - startTime;
 
-                    Toast toast = Toast.makeText(myContext, "Picture saved: " + pictureFile.getName()+ " in "+ String.format("%d", TimeUnit.MILLISECONDS.toSeconds(difference)) + " s", Toast.LENGTH_LONG);
-                    toast.show();
+                  //  Toast toast = Toast.makeText(myContext, "Picture saved: " + pictureFile.getName()+ " in "+ String.format("%d", TimeUnit.MILLISECONDS.toSeconds(difference)) + " s", Toast.LENGTH_SHORT);
+                   // toast.show();
 
                 } catch (FileNotFoundException e) {
                 } catch (IOException e) {
@@ -469,10 +547,25 @@ public class MainActivity extends AppCompatActivity {
         public void onClick(View v) {
 
 
-                         mCamera.takePicture(null, null, mPicture);
+
+            //Intent myIntent = new Intent(myContext, STLViewActivity.class);
+            //myContext.startActivity(myIntent);
 
 
+            //new PostTask().execute("dupa");
 
+           // cameraPreview.removeView(mPreview);
+           // mCamera.startPreview();
+
+
+           /// to zablokowane ostatnio
+            new LoadViewTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+
+
+                        // mCamera.takePicture(null, null, mPicture);
+
+
+            //startActivity();
 
             //ImgView.setImageBitmap();
             //ImgView.invalidate();
@@ -482,8 +575,21 @@ public class MainActivity extends AppCompatActivity {
 
     //make picture and save to a folder
     private static File getOutputMediaFile() {
+
         //make a new file directory inside the "sdcard" folder
-        File mediaStorageDir = new File("/sdcard/", "3DScannerData");
+        File mediaStorageDir1 = new File("/sdcard/3DScannerData/");
+
+        //if this "JCGCamera folder does not exist
+        if (!mediaStorageDir1.exists()) {
+            //if you cannot make this folder return
+            if (!mediaStorageDir1.mkdirs()) {
+                return null;
+            }
+        }
+
+
+        //make a new file directory inside the "sdcard" folder
+        File mediaStorageDir = new File("/sdcard/3DScannerData/"+folderDate);
 
         //if this "JCGCamera folder does not exist
         if (!mediaStorageDir.exists()) {
@@ -493,11 +599,14 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+
+
         //take the current timeStamp
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        //String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         File mediaFile;
         //and make a media file:
-        mediaFile = new File(mediaStorageDir.getPath() + File.separator + "IMG_" + timeStamp + ".jpg");
+
+        mediaFile = new File(mediaStorageDir.getPath() + File.separator  + picName + ".jpg");
 
         return mediaFile;
     }
@@ -712,12 +821,15 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+    private class  OneMeasurment extends Thread {
 
+    }
 
-    private class ThreeDDColector extends Thread {
+    private class  ThreeDDColector extends Thread {
         boolean RunThread;
         float stepAngle, AngleMax;
         boolean canTakephoto;
+        boolean canRotateTable;
         int nr_of_pic=0;
 
 
@@ -725,23 +837,34 @@ public class MainActivity extends AppCompatActivity {
             stepAngle=step;
             RunThread=true;
             AngleMax=angle;
-            canTakephoto=true;
+
+            canRotateTable=true;
+               canTakephoto=true;
 
         }
 
-        public void setRotationReady()
+        public synchronized void setRotationReady()
         {
-            canTakephoto=true;
+            canRotateTable=true;
 
         }
 
-       private  void RotateTable(float Angle)
+        public synchronized void setPhotoReady()
+        {
+            canTakephoto= true;
+
+        }
+
+       private synchronized void RotateTable(float Angle)
         {
             String message =  Integer.toString((int)Angle)+'\n';
 
             byte[] msgBuffer = message.getBytes();
 
             connectedThread.write(msgBuffer);
+
+
+            canRotateTable=false;
 
 
         }
@@ -761,7 +884,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
-         public void run() {
+         public synchronized void run() {
 
              try {
 
@@ -776,39 +899,45 @@ public class MainActivity extends AppCompatActivity {
 
                  for (float a=0;a<=AngleMax;a+=stepAngle)
                  {
+                     synchronized(this) {
+                         while (!canTakephoto & !canRotateTable) {
+                             Log.i("Obroty", "czekam w whileu ");
 
-                     while(!canTakephoto)
-                     {}
-
-
-                     if(canTakephoto)
-                     {
-                         nr_of_pic++;
-                        //  mCamera.takePicture(null, null, mPicture);
+                         }
 
 
-                            takePhoto();
-                         canTakephoto=false;
+                         if (canTakephoto) {
+                             nr_of_pic++;
+                             //  mCamera.takePicture(null, null, mPicture);
+                             int tmp = (int) a;
 
-                        // mHandler.obtainMessage(MESSAGE_TAKE_PHOTO, "brak").sendToTarget();
-
-                         Log.i("Obroty", "zdjecie zrobione wewnatrz ifa ");
-
-                         canTakephoto=false;
+                             picName = Integer.toString(nr_of_pic) + "_" + String.valueOf(tmp);
 
 
-                         UpdateTBox(a);
+                             takePhoto();
+
+
+                             // mHandler.obtainMessage(MESSAGE_TAKE_PHOTO, "brak").sendToTarget();
+
+                             Log.i("Obroty", "zdjecie zrobione wewnatrz ifa ");
+
+                             canTakephoto = false;
+
+
+                             UpdateTBox(a);
+                             Log.i("Obroty", "po  udate textu");
+
+                         }
+
+                         Log.i("Obroty", "zdjecie zrobione ");
+                         RotateTable(stepAngle);
+                         Log.i("Obroty", "stol obrucony");
+                         //    Thread.
+                         sleep(3000);
+                         Log.i("Obroty", "koniec przerwy");
+                         //setRotationReady();
+                         //   Log.i("Obroty", "mozesz robic nastepna fotke");
                      }
-
-                   //  Log.i("Obroty", "zdjecie zrobione ");
-                     RotateTable(stepAngle);
-                 //    Log.i("Obroty", "stol obrucony");
-                 //    Thread.
-                     sleep(2000);
-                 //    Log.i("Obroty", "koniec przerwy");
-                     //setRotationReady();
-                  //   Log.i("Obroty", "mozesz robic nastepna fotke");
-
                  }
                  UpdateTBox((float)-1.0);
 
@@ -908,6 +1037,197 @@ public class MainActivity extends AppCompatActivity {
         }
 
     }
+
+
+
+    private class PostTask extends AsyncTask<String, Integer, String> {
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+           // displayProgressBar("Downloading...");
+
+            //Create a new progress dialog
+            progressDialog = new ProgressDialog(MainActivity.this);
+            //Set the progress dialog to display a horizontal progress bar
+            progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+            //Set the dialog title to 'Loading...'
+            progressDialog.setTitle("Loading...");
+            //Set the dialog message to 'Loading application View, please wait...'
+            progressDialog.setMessage("Loading application View, please wait...");
+            //This dialog can't be canceled by pressing the back key
+            progressDialog.setCancelable(false);
+            //This dialog isn't indeterminate
+            progressDialog.setIndeterminate(false);
+            //The maximum number of items is 100
+            progressDialog.setMax(100);
+            //Set the current progress to zero
+            progressDialog.setProgress(0);
+            //Display the progress dialog
+            progressDialog.show();
+
+        }
+
+        @Override
+        protected String doInBackground(String... params) {
+            //String url=params[0];
+
+            try
+            {
+                //Get the current thread's token
+                synchronized (this)
+                {
+                    //Initialize an integer (that will act as a counter) to zero
+                    int counter = 0;
+                    //While the counter is smaller than four
+                    while(counter <= 10)
+                    {
+                        //Wait 850 milliseconds
+                        this.wait(850);
+                        //Increment the counter
+                        counter++;
+                        //Set the current progress.
+                        //This value is going to be passed to the onProgressUpdate() method.
+                        publishProgress(counter*10);
+                    }
+                }
+            }
+            catch (InterruptedException e)
+            {
+                e.printStackTrace();
+            }
+
+
+            return "All Done!";
+        }
+
+        @Override
+        protected void onProgressUpdate(Integer... values) {
+            super.onProgressUpdate(values);
+            progressDialog.setProgress(values[0]);
+
+
+            //  updateProgressBar(values[0]);
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+            //close the progress dialog
+            progressDialog.dismiss();
+            //initialize the View
+            setContentView(R.layout.activity_main);
+
+            //  dismissProgressBar();
+        }
+    }
+
+
+    private class LoadViewTask extends AsyncTask<Void, Integer, Void>
+    {
+        //Before running code in separate thread
+        @Override
+        protected void onPreExecute()
+        {
+            super.onPreExecute();
+            //Create a new progress dialog
+            progressDialog = new ProgressDialog(MainActivity.this);
+            //Set the progress dialog to display a horizontal progress bar
+            progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+            //Set the dialog title to 'Loading...'
+            progressDialog.setTitle("Loading...");
+            //Set the dialog message to 'Loading application View, please wait...'
+            progressDialog.setMessage("Loading application View, please wait...");
+            //This dialog can't be canceled by pressing the back key
+            progressDialog.setCancelable(false);
+            //This dialog isn't indeterminate
+            progressDialog.setIndeterminate(false);
+            //The maximum number of items is 100
+            progressDialog.setMax(100);
+            //Set the current progress to zero
+            progressDialog.setProgress(0);
+            //Display the progress dialog
+            progressDialog.show();
+            Log.i("Obroty", "koniec proces Showed");
+        }
+
+        //The code to be executed in a background thread.
+        @Override
+        protected Void doInBackground(Void... params)
+        {
+            /* This is just a code that delays the thread execution 4 times,
+             * during 850 milliseconds and updates the current progress. This
+             * is where the code that is going to be executed on a background
+             * thread must be placed.
+             */
+            Log.i("Obroty", "przed try");
+            try
+            {
+                //Get the current thread's token
+                synchronized (this)
+                {
+                    folderDate =  new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+
+                    Log.i("Obroty", "w synchronized");
+                    //Initialize an integer (that will act as a counter) to zero
+                    int counter = 0;
+                    //While the counter is smaller than four
+
+                    while(counter < 100)
+                    {
+                        picName = Integer.toString(counter);
+                        //takePhoto();
+                        //mCamera.takePicture(null, null, mPicture);
+                        mCamera.takePicture(null, null, jpegCallback);
+
+                        Log.i("Obroty", "w while ");
+                        //Wait 850 milliseconds
+                        this.wait(2000);
+
+                        //Increment the counter
+                        counter+=5;
+                        Log.i("Obroty", "po waicie");
+                        //Set the current progress.
+                        //This value is going to be passed to the onProgressUpdate() method.
+                        publishProgress(counter);
+                        Log.i("Obroty", "po publikacji");
+
+
+
+                    }
+                }
+            }
+            catch (InterruptedException e)
+            {
+                Log.i("Obroty", "w kaczu");
+                e.printStackTrace();
+            }
+            Log.i("Obroty", "returny 0000");
+            return null;
+        }
+
+        //Update the progress
+        @Override
+        protected void onProgressUpdate(Integer... values)
+        {
+            //set the current progress of the progress dialog
+            Log.i("Obroty", "w publikacji");
+            progressDialog.setProgress(values[0]);
+        }
+
+        //after executing the code in the thread
+        @Override
+        protected void onPostExecute(Void result)
+        {
+            //close the progress dialog
+            progressDialog.dismiss();
+            //initialize the View
+            setContentView(R.layout.activity_main);
+        }
+    }
+
+
+
+
 }
 
 

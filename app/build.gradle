@@ -7,6 +7,8 @@ android {
         applicationId "com.ramida.a3dlaserscaner"
         minSdkVersion 17
         targetSdkVersion 22
+        multiDexEnabled true
+
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -21,6 +23,7 @@ android {
 
 dependencies {
 
+    compile 'com.android.support:multidex:1.0.1'
     compile fileTree(dir: 'libs', include: ['*.jar'])
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'

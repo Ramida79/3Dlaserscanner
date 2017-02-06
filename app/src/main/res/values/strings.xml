@@ -1,3 +1,15 @@
 <resources>
     <string name="app_name">3D laser scaner</string>
+    <string name="stl_load_progress_title">STL file loading...</string>
+    <string name="stl_load_progress_message">Please wait a moment.</string>
+    <string name="error_fetch_data">Failed to read the STL file.</string>
+    <!-- dialog -->
+    <string name="menu_open">Select STL file...</string>
+    <string name="parent_directory">Parent directory</string>
+    <string name="close_dialog">Close dialog</string>
+    <!-- toggle button -->
+    <string name="toggleButtonMove">Move</string>
+    <string name="toggleButtonRotate">Rotate</string>
+
+
 </resources>
