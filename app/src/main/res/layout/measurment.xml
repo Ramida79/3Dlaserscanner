@@ -73,10 +73,21 @@
             android:layout_below="@id/textInfoMeasurments"
             android:id="@+id/bStartImagesAnalize"
              />
-            <ImageView
+
+            <Button
+                android:text="View STL"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignEnd="@+id/textInfoMeasurments"
+                android:layout_below="@id/bStartImagesAnalize"
+                android:id="@+id/bVIEWstl"
+                />
+
+
+            <ImageView
+                android:layout_width="300dp"
+                android:layout_height="200dp"
+                android:scaleType="fitXY"
+                android:layout_below="@id/bVIEWstl"
                 android:id="@+id/imageView" />
 
         </RelativeLayout>

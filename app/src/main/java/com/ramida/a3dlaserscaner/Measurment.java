@@ -2,6 +2,7 @@ package com.ramida.a3dlaserscaner;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -28,6 +29,7 @@ public class Measurment  extends Activity {
     private ListView mainListView ;
     private TextView tInfoMeasurments;
     private Button bAnalize;
+    private  Button bSTLView;
     private ImageView imView;
 
 
@@ -51,8 +53,22 @@ public class Measurment  extends Activity {
         tInfoMeasurments = (TextView) findViewById(R.id.textInfoMeasurments);
         bAnalize = (Button) findViewById(R.id.bStartImagesAnalize);
         imView =(ImageView) findViewById(R.id.imageView);
+        bSTLView = (Button) findViewById(R.id.bVIEWstl);
+        bSTLView.setEnabled(false);
 
 
+        bSTLView.setOnClickListener(new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View v) {
+
+                                            Intent myIntent = new Intent(myContext, STLViewActivity.class);
+
+                                            myContext.startActivity(myIntent);
+                                        }
+
+
+                                    }
+        );
 
         imView.setOnClickListener(new View.OnClickListener() {
                                       @Override
@@ -96,7 +112,7 @@ public class Measurment  extends Activity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long arg3) {
                 String kat="brak";
                 String KatMax="brak";
-
+                String existSTL="brak";
                 selectedMeasurment=position;
                 //view.setSelected(true);
                 for (int j = 0; j < parent.getChildCount(); j++)
@@ -109,10 +125,21 @@ public class Measurment  extends Activity {
 
                 File[] filelist = dir.listFiles();
 
+                bSTLView.setEnabled(false);
+
                 String[] theNamesOfFiles = new String[filelist.length];
                 for (int i = 0; i < theNamesOfFiles.length; i++) {
                     theNamesOfFiles[i] = filelist[i].getName();
+
+                    if(filelist[i].getName().contains(".stl"))
+                    {
+                        existSTL="JEST STL";
+                        bSTLView.setEnabled(true);
+
+                    }
                 }
+
+
 
                 if(theNamesOfFiles.length>2) {
                     kat="";
@@ -161,7 +188,7 @@ public class Measurment  extends Activity {
 
                 }
 
-                tInfoMeasurments.setText("Ilosc plikow w folderze: "+theNamesOfFiles.length+ "\nObrot o kat:"+ kat+"\nCalkowity kat pomiarów: "+KatMax);
+                tInfoMeasurments.setText("Ilosc plikow w folderze: "+theNamesOfFiles.length+ "\nObrot o kat:"+ kat+"\nCalkowity kat pomiarów: "+KatMax+"\n JEST stl czy nie? " + existSTL);
                 //URL url = new URL("http://image10.bizrate-images.com/resize?sq=60&uid=2216744464");
                 if(filelist.length>0) {
                     Bitmap bmp = BitmapFactory.decodeFile(filelist[0].getAbsolutePath());

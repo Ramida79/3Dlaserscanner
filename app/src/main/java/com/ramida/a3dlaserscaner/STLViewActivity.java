@@ -57,6 +57,8 @@ public class STLViewActivity extends Activity implements FileListDialog.OnFileLi
             Log.i("Uri:" + uri);
         }
         setUpViews(uri);
+      //  FileListDialog fileListDialog = new FileListDialog(STLViewActivity.this, false, "Choose STL file...", ".stl");
+       // fileListDialog.show();
     }
 
     @Override

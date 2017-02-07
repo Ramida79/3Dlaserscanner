@@ -548,8 +548,8 @@ public class MainActivity extends Activity {
 
 
 
-            //Intent myIntent = new Intent(myContext, STLViewActivity.class);
-            //myContext.startActivity(myIntent);
+            Intent myIntent = new Intent(myContext, Measurment.class);
+            myContext.startActivity(myIntent);
 
 
             //new PostTask().execute("dupa");
@@ -559,7 +559,7 @@ public class MainActivity extends Activity {
 
 
            /// to zablokowane ostatnio
-            new LoadViewTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+          //  new LoadViewTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 
 
                         // mCamera.takePicture(null, null, mPicture);
